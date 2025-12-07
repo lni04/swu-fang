@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>教务管理系统 - 学生选课</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr bgcolor="#336699" height="60">
+      <td align="center">
+        <font color="white" size="5"><b>★ 教务管理系统 ★</b></font>
+      </td>
+    </tr>
+  </table>
+
+  <div id="login-box">
+    <table border="1" cellpadding="5" cellspacing="0" align="center" bgcolor="#f0f0f0">
+      <tr bgcolor="#cccccc"><td colspan="2" align="center"><b>【学生登录】</b></td></tr>
+      <tr>
+        <td align="right">学　号：</td>
+        <td><input type="text" id="xuehao" size="15" value="2024001"></td>
+      </tr>
+      <tr>
+        <td align="right">密　码：</td>
+        <td><input type="password" id="mima" size="15" value="123456"></td>
+      </tr>
+      <tr>
+        <td colspan="2" align="center">
+          <input type="button" value="【登 录】" onclick="login()">
+          <input type="reset" value="【重 置】">
+        </td>
+      </tr>
+    </table>
+    <p align="center"><font color="red" size="2">※ 初始密码：123456</font></p>
+  </div>
+
+  <div id="main-box" style="display:none">
+    <table width="100%" border="0">
+      <tr>
+        <td>当前用户：<font color="blue"><b id="username"></b></font></td>
+        <td align="right"><input type="button" value="【退出登录】" onclick="logout()"></td>
+      </tr>
+    </table>
+    <hr>
+
+    <p><b>◆ 可选课程列表</b></p>
+    <table border="1" cellpadding="3" cellspacing="0" width="100%" id="course-table">
+      <tr bgcolor="#cccccc">
+        <th>课程号</th><th>课程名</th><th>学分</th><th>学时</th>
+        <th>授课教师</th><th>上课时间</th><th>教室</th><th>操作</th>
+      </tr>
+    </table>
+
+    <br>
+    <p><b>◆ 已选课程</b></p>
+    <table border="1" cellpadding="3" cellspacing="0" width="100%" id="selected-table">
+      <tr bgcolor="#cccccc">
+        <th>课程名</th><th>学分</th><th>授课教师</th>
+        <th>上课时间</th><th>教室</th><th>选课时间</th><th>操作</th>
+      </tr>
+    </table>
+    <br>
+    <marquee bgcolor="#ffffcc" scrollamount="3">
+      <font color="red">※ 温馨提示：选课期间请勿关闭浏览器，如有问题请联系教务处（电话：88888888）</font>
+    </marquee>
+  </div>
+
+  <hr>
+  <p align="center"><font size="2" color="gray">Copyright © 2025 教务处 版权所有 | 建议使用IE6.0浏览器</font></p>
+
+  <script>
+    let currentUser = null;
+
+    async function login() {
+      const 学号 = document.getElementById('xuehao').value;
+      const 密码 = document.getElementById('mima').value;
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 学号, 密码 })
+      }).then(r => r.json());
+      
+      if (res.success) {
+        currentUser = res.data;
+        document.getElementById('username').innerText = res.data.姓名 + '（' + res.data.学号 + '）';
+        document.getElementById('login-box').style.display = 'none';
+        document.getElementById('main-box').style.display = 'block';
+        loadCourses();
+        loadSelected();
+      } else {
+        alert(res.msg);
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('login-box').style.display = 'block';
+      document.getElementById('main-box').style.display = 'none';
+    }
+
+    async function loadCourses() {
+      const res = await fetch('/api/courses').then(r => r.json());
+      const table = document.getElementById('course-table');
+      table.innerHTML = table.rows[0].outerHTML;
+      res.data.forEach(c => {
+        table.innerHTML += `<tr>
+          <td>${c.课程号}</td><td>${c.课程名}</td><td>${c.学分}</td><td>${c.学时}</td>
+          <td>${c.教师姓名}</td><td>${c.上课时间}</td><td>${c.教室}</td>
+          <td><input type="button" value="【选课】" onclick="selectCourse(${c.排课ID})"></td>
+        </tr>`;
+      });
+    }
+
+    async function loadSelected() {
+      const res = await fetch('/api/selected/' + currentUser.学号).then(r => r.json());
+      const table = document.getElementById('selected-table');
+      table.innerHTML = table.rows[0].outerHTML;
+      res.data.forEach(c => {
+        table.innerHTML += `<tr>
+          <td>${c.课程名}</td><td>${c.学分}</td><td>${c.教师姓名}</td>
+          <td>${c.上课时间}</td><td>${c.教室}</td><td>${c.操作时间}</td>
+          <td><input type="button" value="【退选】" onclick="dropCourse(${c.选课ID})"></td>
+        </tr>`;
+      });
+    }
+
+    async function selectCourse(排课ID) {
+      if (!confirm('确定选择该课程吗？')) return;
+      const res = await fetch('/api/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 学号: currentUser.学号, 排课ID })
+      }).then(r => r.json());
+      alert(res.msg);
+      if (res.success) loadSelected();
+    }
+
+    async function dropCourse(选课ID) {
+      if (!confirm('确定退选该课程吗？')) return;
+      const res = await fetch('/api/drop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 选课ID })
+      }).then(r => r.json());
+      alert(res.msg);
+      if (res.success) loadSelected();
+    }
+  </script>
+</body>
+</html>

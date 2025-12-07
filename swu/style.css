@@ -1,0 +1,65 @@
+body {
+  font-family: 宋体, SimSun, serif;
+  font-size: 12px;
+  background-color: #e8e8e8;
+  margin: 0;
+  padding: 10px;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+td,
+th {
+  border-color: #999999;
+  padding: 4px 8px;
+}
+
+input[type="text"],
+input[type="password"] {
+  border: 1px solid #999;
+  font-family: 宋体;
+  font-size: 12px;
+}
+
+input[type="button"],
+input[type="reset"] {
+  background: #d4d0c8;
+  border: 2px outset #ffffff;
+  font-family: 宋体;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 8px;
+}
+
+input[type="button"]:active {
+  border: 2px inset #ffffff;
+}
+
+#login-box {
+  margin-top: 100px;
+}
+
+#main-box {
+  background: #ffffff;
+  border: 1px solid #999999;
+  padding: 10px;
+  margin: 10px;
+}
+
+hr {
+  border: none;
+  border-top: 1px dashed #999999;
+}
+
+a {
+  color: #0000ff;
+  text-decoration: underline;
+}
+
+marquee {
+  border: 1px dashed #ff0000;
+  padding: 5px;
+}
